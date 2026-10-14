@@ -6,9 +6,6 @@
     <title>Math Snakes & Ladders Multiplayer</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <!-- Confetti for winning celebration -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -37,7 +34,7 @@
         <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
             Math Snakes & Ladders
         </h1>
-        <p class="text-slate-400 text-sm mt-1">Roll 2 dices, answer algebra & standard form questions correctly to climb higher!</p>
+        <p class="text-slate-400 text-sm mt-1">Roll 2 dice, answer algebra & standard form questions correctly to climb higher!</p>
     </header>
 
     <!-- Setup / Lobby Screen -->
@@ -53,7 +50,7 @@
                 <input type="text" id="room-code-input" placeholder="e.g. math123" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500 uppercase">
             </div>
             <div class="flex gap-3 pt-2">
-                <button onclick="joinGame()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 font-semibold py-2 px-4 rounded-lg transition">Join / Create Room</button>
+                <button onclick="joinGame()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 font-semibold py-2 px-4 rounded-lg transition text-white">Join / Create Room</button>
             </div>
         </div>
     </div>
@@ -91,7 +88,7 @@
                     <div id="dice-1" class="w-16 h-16 bg-slate-900 border-2 border-emerald-500 rounded-xl flex items-center justify-center text-3xl font-black text-emerald-400 shadow-inner">?</div>
                     <div id="dice-2" class="w-16 h-16 bg-slate-900 border-2 border-emerald-500 rounded-xl flex items-center justify-center text-3xl font-black text-emerald-400 shadow-inner">?</div>
                 </div>
-                <button id="roll-btn" onclick="rollDice()" disabled class="w-full bg-slate-700 text-slate-400 font-bold py-2.5 px-4 rounded-lg cursor-not-allowed transition">Roll Dices</button>
+                <button id="roll-btn" onclick="rollDice()" disabled class="w-full bg-slate-700 text-slate-400 font-bold py-2.5 px-4 rounded-lg cursor-not-allowed transition">Roll Dice</button>
             </div>
 
             <!-- Game Log -->
@@ -117,58 +114,40 @@
         </div>
     </div>
 
-    <!-- Firebase & Game Script Logic -->
+    <!-- Game Script Logic -->
     <script>
-        // REPLACE with your Firebase project configuration if deploying online
-        const firebaseConfig = {
-            apiKey: "AIzaSyDummyKeyForDemoPurposesOnly12345",
-            authDomain: "math-snakes-ladders.firebaseapp.com",
-            projectId: "math-snakes-ladders",
-            storageBucket: "math-snakes-ladders.appspot.com",
-            messagingSenderId: "1234567890",
-            appId: "1:1234567890:web:abcdef"
-        };
-        
-        // Initialize Firebase (using compatibility library or mock fallback if offline)
-        try {
-            firebase.initializeApp(firebaseConfig);
-            var db = firebase.firestore();
-        } catch(e) {
-            console.warn("Firebase initialization skipped or running offline mode.");
-        }
-
-        // Custom Question Bank Loaded from User Data
+        // Question Bank Loaded from User Data
         const questionBank = [
-            { q: "Factorise $3x+3$", options: ["$3(x+1)$", "$3(x-1)$", "$x(3+3)$", "$3x(1+1)$"], answer: "$3(x+1)$" },
-            { q: "Factorise $5x-20$", options: ["$5(x-4)$", "$5(x+4)$", "$4(x-5)$", "$5x(1-4)$"], answer: "$5(x-4)$" },
-            { q: "Factorise $3x-33$.", options: ["$3(x-11)$", "$3(x+11)$", "$11(x-3)$", "$3x(1-11)$"], answer: "$3(x-11)$" },
-            { q: "Factorise $8x-8$", options: ["$8(x-1)$", "$8(x+1)$", "$x(8-8)$", "$8x(1-1)$"], answer: "$8(x-1)$" },
-            { q: "Factorise $3x-12$.", options: ["$3(x-4)$", "$3(x+4)$", "$4(x-3)$", "$12(x-1)$"], answer: "$3(x-4)$" },
-            { q: "Factorise $2x-16$.", options: ["$2(x-8)$", "$2(x+8)$", "$8(x-2)$", "$2x(1-8)$"], answer: "$2(x-8)$" },
-            { q: "Factorise $7x+35$.", options: ["$7(x+5)$", "$7(x-5)$", "$5(x+7)$", "$7x(1+5)$"], answer: "$7(x+5)$" },
-            { q: "Factorise $4x-52$.", options: ["$4(x-13)$", "$4(x+13)$", "$13(x-4)$", "$4x(1-13)$"], answer: "$4(x-13)$" },
-            { q: "Factorise $7x+91$.", options: ["$7(x+13)$", "$7(x-13)$", "$13(x+7)$", "$7x(1+13)$"], answer: "$7(x+13)$" },
-            { q: "Factorise $8x+24.$", options: ["$8(x+3)$", "$8(x-3)$", "$3(x+8)$", "$8x(1+3)$"], answer: "$8(x+3)$" },
-            { q: "Factorise $6x-72$", options: ["$6(x-12)$", "$6(x+12)$", "$12(x-6)$", "$6x(1-12)$"], answer: "$6(x-12)$" },
-            { q: "Factorise $7x-49$", options: ["$7(x-7)$", "$7(x+7)$", "$49(x-1)$", "$7x(1-7)$"], answer: "$7(x-7)$" },
-            { q: "Factorise $2x-22.$", options: ["$2(x-11)$", "$2(x+11)$", "$11(x-2)$", "$2x(1-11)$"], answer: "$2(x-11)$" },
-            { q: "Factorise $9x+63$", options: ["$9(x+7)$", "$9(x-7)$", "$7(x+9)$", "$9x(1+7)$"], answer: "$9(x+7)$" },
-            { q: "Factorise $5x+30$", options: ["$5(x+6)$", "$5(x-6)$", "$6(x+5)$", "$5x(1+6)$"], answer: "$5(x+6)$" },
-            { q: "Write 0.00171 in standard form.", options: ["$1.71\\times10^{-3}$", "$1.71\\times10^{3}$", "$17.1\\times10^{-4}$", "$0.171\\times10^{-2}$"], answer: "$1.71\\times10^{-3}$" },
-            { q: "Write 0.619 in standard form.", options: ["$6.19\\times10^{-1}$", "$6.19\\times10^{1}$", "$61.9\\times10^{-2}$", "$0.619\\times10^{0}$"], answer: "$6.19\\times10^{-1}$" },
-            { q: "Write 694 000 in standard form.", options: ["$6.94\\times10^{5}$", "$6.94\\times10^{-5}$", "$69.4\\times10^{4}$", "$6.94\\times10^{6}$"], answer: "$6.94\\times10^{5}$" },
-            { q: "Write 8 690 in standard form.", options: ["$8.69\\times10^{3}$", "$8.69\\times10^{-3}$", "$86.9\\times10^{2}$", "$8.69\\times10^{4}$"], answer: "$8.69\\times10^{3}$" },
-            { q: "Write 0.0035 in standard form.", options: ["$3.5\\times10^{-3}$", "$3.5\\times10^{3}$", "$35\\times10^{-4}$", "$0.35\\times10^{-2}$"], answer: "$3.5\\times10^{-3}$" },
-            { q: "Write 640 000 in standard form.", options: ["$6.4\\times10^{5}$", "$6.4\\times10^{3}$", "$6.4\\times10^{-5}$", "$64\\times10^{4}$"], answer: "$6.4\\times10^{5}$" },
-            { q: "Write 0.0828 in standard form.", options: ["$8.28\\times10^{-2}$", "$8.28\\times10^{2}$", "$82.8\\times10^{-3}$", "$0.828\\times10^{-1}$"], answer: "$8.28\\times10^{-2}$" },
-            { q: "Write 87 100 000 in standard form.", options: ["$8.71\\times10^{7}$", "$8.71\\times10^{-7}$", "$87.1\\times10^{6}$", "$8.71\\times10^{8}$"], answer: "$8.71\\times10^{7}$" },
-            { q: "Write 370 000 in standard form.", options: ["$3.7\\times10^{5}$", "$3.7\\times10^{-5}$", "$37\\times10^{4}$", "$3.7\\times10^{6}$"], answer: "$3.7\\times10^{5}$" },
-            { q: "Write 0.00696 in standard form.", options: ["$6.96\\times10^{-3}$", "$6.96\\times10^{3}$", "$69.6\\times10^{-4}$", "$0.696\\times10^{-2}$"], answer: "$6.96\\times10^{-3}$" },
-            { q: "Write 4 820 000 in standard form.", options: ["$4.82\\times10^{6}$", "$4.82\\times10^{-6}$", "$48.2\\times10^{5}$", "$4.82\\times10^{7}$"], answer: "$4.82\\times10^{6}$" },
-            { q: "Write 0.0717 in standard form.", options: ["$7.17\\times10^{-2}$", "$7.17\\times10^{2}$", "$71.7\\times10^{-3}$", "$0.717\\times10^{-1}$"], answer: "$7.17\\times10^{-2}$" },
-            { q: "Write 4980 in standard form.", options: ["$4.98\\times10^{3}$", "$4.98\\times10^{-3}$", "$49.8\\times10^{2}$", "$4.98\\times10^{4}$"], answer: "$4.98\\times10^{3}$" },
-            { q: "Write 5 890 in standard form.", options: ["$5.89\\times10^{3}$", "$5.89\\times10^{-3}$", "$58.9\\times10^{2}$", "$5.89\\times10^{4}$"], answer: "$5.89\\times10^{3}$" },
-            { q: "Write 274 000 in standard form.", options: ["$2.74\\times10^{5}$", "$2.74\\times10^{-5}$", "$27.4\\times10^{4}$", "$2.74\\times10^{6}$"], answer: "$2.74\\times10^{5}$" }
+            { q: "Factorise 3x + 3", options: ["3(x+1)", "3(x-1)", "x(3+3)", "3x(1+1)"], answer: "3(x+1)" },
+            { q: "Factorise 5x - 20", options: ["5(x-4)", "5(x+4)", "4(x-5)", "5x(1-4)"], answer: "5(x-4)" },
+            { q: "Factorise 3x - 33", options: ["3(x-11)", "3(x+11)", "11(x-3)", "3x(1-11)"], answer: "3(x-11)" },
+            { q: "Factorise 8x - 8", options: ["8(x-1)", "8(x+1)", "x(8-8)", "8x(1-1)"], answer: "8(x-1)" },
+            { q: "Factorise 3x - 12", options: ["3(x-4)", "3(x+4)", "4(x-3)", "12(x-1)"], answer: "3(x-4)" },
+            { q: "Factorise 2x - 16", options: ["2(x-8)", "2(x+8)", "8(x-2)", "2x(1-8)"], answer: "2(x-8)" },
+            { q: "Factorise 7x + 35", options: ["7(x+5)", "7(x-5)", "5(x+7)", "7x(1+5)"], answer: "7(x+5)" },
+            { q: "Factorise 4x - 52", options: ["4(x-13)", "4(x+13)", "13(x-4)", "4x(1-13)"], answer: "4(x-13)" },
+            { q: "Factorise 7x + 91", options: ["7(x+13)", "7(x-13)", "13(x+7)", "7x(1+13)"], answer: "7(x+13)" },
+            { q: "Factorise 8x + 24", options: ["8(x+3)", "8(x-3)", "3(x+8)", "8x(1+3)"], answer: "8(x+3)" },
+            { q: "Factorise 6x - 72", options: ["6(x-12)", "6(x+12)", "12(x-6)", "6x(1-12)"], answer: "6(x-12)" },
+            { q: "Factorise 7x - 49", options: ["7(x-7)", "7(x+7)", "49(x-1)", "7x(1-7)"], answer: "7(x-7)" },
+            { q: "Factorise 2x - 22", options: ["2(x-11)", "2(x+11)", "11(x-2)", "2x(1-11)"], answer: "2(x-11)" },
+            { q: "Factorise 9x + 63", options: ["9(x+7)", "9(x-7)", "7(x+9)", "9x(1+7)"], answer: "9(x+7)" },
+            { q: "Factorise 5x + 30", options: ["5(x+6)", "5(x-6)", "6(x+5)", "5x(1+6)"], answer: "5(x+6)" },
+            { q: "Write 0.00171 in standard form.", options: ["1.71 × 10⁻³", "1.71 × 10³", "17.1 × 10⁻⁴", "0.171 × 10⁻²"], answer: "1.71 × 10⁻³" },
+            { q: "Write 0.619 in standard form.", options: ["6.19 × 10⁻¹", "6.19 × 10¹", "61.9 × 10⁻²", "0.619 × 10⁰"], answer: "6.19 × 10⁻¹" },
+            { q: "Write 694000 in standard form.", options: ["6.94 × 10⁵", "6.94 × 10⁻⁵", "69.4 × 10⁴", "6.94 × 10⁶"], answer: "6.94 × 10⁵" },
+            { q: "Write 8690 in standard form.", options: ["8.69 × 10³", "8.69 × 10⁻³", "86.9 × 10²", "8.69 × 10⁴"], answer: "8.69 × 10³" },
+            { q: "Write 0.0035 in standard form.", options: ["3.5 × 10⁻³", "3.5 × 10³", "35 × 10⁻⁴", "0.35 × 10⁻²"], answer: "3.5 × 10⁻³" },
+            { q: "Write 640000 in standard form.", options: ["6.4 × 10⁵", "6.4 × 10³", "6.4 × 10⁻⁵", "64 × 10⁴"], answer: "6.4 × 10⁵" },
+            { q: "Write 0.0828 in standard form.", options: ["8.28 × 10⁻²", "8.28 × 10²", "82.8 × 10⁻³", "0.828 × 10⁻¹"], answer: "8.28 × 10⁻²" },
+            { q: "Write 87100000 in standard form.", options: ["8.71 × 10⁷", "8.71 × 10⁻⁷", "87.1 × 10⁶", "8.71 × 10⁸"], answer: "8.71 × 10⁷" },
+            { q: "Write 370000 in standard form.", options: ["3.7 × 10⁵", "3.7 × 10⁻⁵", "37 × 10⁴", "3.7 × 10⁶"], answer: "3.7 × 10⁵" },
+            { q: "Write 0.00696 in standard form.", options: ["6.96 × 10⁻³", "6.96 × 10³", "69.6 × 10⁻⁴", "0.696 × 10⁻²"], answer: "6.96 × 10⁻³" },
+            { q: "Write 4820000 in standard form.", options: ["4.82 × 10⁶", "4.82 × 10⁻⁶", "48.2 × 10⁵", "4.82 × 10⁷"], answer: "4.82 × 10⁶" },
+            { q: "Write 0.0717 in standard form.", options: ["7.17 × 10⁻²", "7.17 × 10²", "71.7 × 10⁻³", "0.717 × 10⁻¹"], answer: "7.17 × 10⁻²" },
+            { q: "Write 4980 in standard form.", options: ["4.98 × 10³", "4.98 × 10⁻³", "49.8 × 10²", "4.98 × 10⁴"], answer: "4.98 × 10³" },
+            { q: "Write 5890 in standard form.", options: ["5.89 × 10³", "5.89 × 10⁻³", "58.9 × 10²", "5.89 × 10⁴"], answer: "5.89 × 10³" },
+            { q: "Write 274000 in standard form.", options: ["2.74 × 10⁵", "2.74 × 10⁻⁵", "27.4 × 10⁴", "2.74 × 10⁶"], answer: "2.74 × 10⁵" }
         ];
 
         // Board layout mapping (Snakes & Ladders connections)
@@ -181,42 +160,32 @@
         let gameState = {
             roomCode: null,
             playerName: null,
-            playerId: 'p_' + Math.random().toString(36.substring(2, 7)),
+            playerId: 'p_' + Math.random().toString(36).substring(2, 7),
             players: {},
-            turnIndex: 0,
-            activeDice: [1, 1],
-            isRolled: false
+            turnOrder: [],
+            currentTurnIndex: 0
         };
 
-        let unsubscribeFirestore = null;
+        let broadcastChannel = null;
         let questionTimerInterval = null;
 
-        // Initialize Board Tiles and SVG Connections
         function buildBoard() {
             const grid = document.getElementById('board-grid');
             grid.innerHTML = '';
             
-            // Generate standard 10x10 alternating serpentine layout numbering
             for (let row = 9; row >= 0; row--) {
                 for (let col = 0; col < 10; col++) {
-                    let tileNum;
-                    if (row % 2 === 1) {
-                        tileNum = row * 10 + (10 - col);
-                    } else {
-                        tileNum = row * 10 + col + 1;
-                    }
+                    let tileNum = (row % 2 === 1) ? row * 10 + (10 - col) : row * 10 + col + 1;
 
                     const tile = document.createElement('div');
                     tile.id = `tile-${tileNum}`;
                     tile.className = `border border-slate-700/50 flex flex-col justify-between p-1 text-[10px] font-mono relative ${tileNum % 2 === 0 ? 'bg-slate-800/60' : 'bg-slate-800/30'}`;
                     
-                    // Tile number label
                     const label = document.createElement('span');
                     label.textContent = tileNum;
                     label.className = 'text-slate-500 font-bold';
                     tile.appendChild(label);
 
-                    // Indicators for snakes / ladders
                     if (snakesAndLadders[tileNum]) {
                         const target = snakesAndLadders[tileNum];
                         const badge = document.createElement('span');
@@ -225,7 +194,6 @@
                         tile.appendChild(badge);
                     }
 
-                    // Container for player avatars on this tile
                     const avatarContainer = document.createElement('div');
                     avatarContainer.id = `avatars-${tileNum}`;
                     avatarContainer.className = 'flex flex-wrap gap-0.5 items-center justify-center mt-auto';
@@ -237,7 +205,6 @@
             drawSnakeAndLadderLines();
         }
 
-        // Draw connecting SVG lines for snakes and ladders
         function drawSnakeAndLadderLines() {
             const svg = document.getElementById('board-svg');
             svg.innerHTML = '';
@@ -271,7 +238,6 @@
             }, 100);
         }
 
-        // Join / Create Room Handler
         function joinGame() {
             const nameInput = document.getElementById('player-name-input').value.trim();
             const roomInput = document.getElementById('room-code-input').value.trim().toLowerCase();
@@ -288,67 +254,46 @@
             document.getElementById('game-screen').classList.remove('hidden');
             document.getElementById('display-room-code').textContent = roomInput;
 
-            logActivity(`Joined room [${roomInput}] as ${nameInput}`);
-            
-            // Connect to Firebase if available, otherwise fallback to local single-browser simulation mode
-            if (typeof db !== 'undefined') {
-                initFirebaseSync();
+            // Setup BroadcastChannel for local/multiplayer sync across tabs
+            broadcastChannel = new BroadcastChannel(`math_snakes_${roomInput}`);
+            broadcastChannel.onmessage = (event) => {
+                syncGameState(event.data);
+            };
+
+            // Load existing room state from localStorage or create new
+            let roomData = JSON.parse(localStorage.getItem(`room_${roomInput}`));
+            if (!roomData) {
+                roomData = {
+                    players: {
+                        [gameState.playerId]: { name: gameState.playerName, position: 1, colorIndex: 0 }
+                    },
+                    turnOrder: [gameState.playerId],
+                    currentTurnIndex: 0
+                };
             } else {
-                initLocalMockMode();
+                if (!roomData.players[gameState.playerId]) {
+                    const colorIdx = Object.keys(roomData.players).length % playerColors.length;
+                    roomData.players[gameState.playerId] = { name: gameState.playerName, position: 1, colorIndex: colorIdx };
+                    roomData.turnOrder.push(gameState.playerId);
+                }
             }
+
+            saveAndBroadcastState(roomData);
+            logActivity(`Joined room [${roomInput}] as ${nameInput}`);
         }
 
-        // Firebase Sync Setup
-        function initFirebaseSync() {
-            const roomRef = db.collection('rooms').doc(gameState.roomCode);
-
-            roomRef.get().then((doc) => {
-                if (!doc.exists) {
-                    // Create new room
-                    roomRef.set({
-                        players: {
-                            [gameState.playerId]: { name: gameState.playerName, position: 1, colorIndex: 0 }
-                        },
-                        turnOrder: [gameState.playerId],
-                        currentTurnIndex: 0,
-                        dice: [1, 1],
-                        status: 'active'
-                    });
-                } else {
-                    // Join existing room
-                    const data = doc.data();
-                    const players = data.players || {};
-                    const turnOrder = data.turnOrder || [];
-
-                    if (!players[gameState.playerId]) {
-                        const colorIdx = Object.keys(players).length % playerColors.length;
-                        players[gameState.playerId] = { name: gameState.playerName, position: 1, colorIndex: colorIdx };
-                        turnOrder.push(gameState.playerId);
-                        roomRef.update({ players, turnOrder });
-                    }
-                }
-            });
-
-            // Listen to real-time updates
-            unsubscribeFirestore = roomRef.onSnapshot((doc) => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    updateGameStateFromRemote(data);
-                }
-            });
+        function saveAndBroadcastState(roomData) {
+            localStorage.setItem(`room_${gameState.roomCode}`, JSON.stringify(roomData));
+            if (broadcastChannel) {
+                broadcastChannel.postMessage(roomData);
+            }
+            syncGameState(roomData);
         }
 
-        // Local simulation fallback if Firebase is offline
-        function initLocalMockMode() {
-            gameState.players[gameState.playerId] = { name: gameState.playerName, position: 1, colorIndex: 0 };
-            updateUI();
-            enableTurnControls(true);
-        }
-
-        function updateGameStateFromRemote(data) {
-            gameState.players = data.players || {};
-            gameState.turnOrder = data.turnOrder || [];
-            gameState.currentTurnIndex = data.currentTurnIndex || 0;
+        function syncGameState(roomData) {
+            gameState.players = roomData.players || {};
+            gameState.turnOrder = roomData.turnOrder || [];
+            gameState.currentTurnIndex = roomData.currentTurnIndex || 0;
             updateUI();
 
             const currentTurnPlayerId = gameState.turnOrder[gameState.currentTurnIndex];
@@ -357,13 +302,11 @@
         }
 
         function updateUI() {
-            // Clear all player avatars from board tiles
             for (let i = 1; i <= 100; i++) {
                 const container = document.getElementById(`avatars-${i}`);
                 if (container) container.innerHTML = '';
             }
 
-            // Populate player list & render avatars on current tiles
             const playersListEl = document.getElementById('players-list');
             playersListEl.innerHTML = '';
 
@@ -372,7 +315,6 @@
                 const pos = pData.position || 1;
                 const colorClass = playerColors[pData.colorIndex !== undefined ? pData.colorIndex : (colorIdx % playerColors.length)];
 
-                // Render avatar on board tile
                 const tileAvatarContainer = document.getElementById(`avatars-${pos}`);
                 if (tileAvatarContainer) {
                     const avatar = document.createElement('div');
@@ -382,7 +324,6 @@
                     tileAvatarContainer.appendChild(avatar);
                 }
 
-                // Render player status card
                 const pCard = document.createElement('div');
                 pCard.className = `flex justify-between items-center p-2 rounded-lg bg-slate-900 border ${pId === gameState.playerId ? 'border-emerald-500' : 'border-slate-800'}`;
                 pCard.innerHTML = `
@@ -415,7 +356,6 @@
             }
         }
 
-        // Dice Roll Mechanics (Roll 2 dices per round)
         function rollDice() {
             const d1El = document.getElementById('dice-1');
             const d2El = document.getElementById('dice-2');
@@ -434,26 +374,21 @@
                 d1El.textContent = roll1;
                 d2El.textContent = roll2;
 
-                logActivity(`Rolled two dices: ${roll1} + ${roll2} = Total ${totalRoll}`);
-                
-                // Trigger Educational Question Challenge before moving
+                logActivity(`Rolled two dice: ${roll1} + ${roll2} = Total ${totalRoll}`);
                 triggerMathChallenge(totalRoll);
             }, 600);
         }
 
-        // Educational Question Challenge Engine
         function triggerMathChallenge(totalRoll) {
             const qModal = document.getElementById('question-modal');
             const qText = document.getElementById('q-text');
             const qOptions = document.getElementById('q-options');
             const qTimer = document.getElementById('q-timer');
 
-            // Pick a random question from our question bank
             const qObj = questionBank[Math.floor(Math.random() * questionBank.length)];
             qText.textContent = qObj.q;
             qOptions.innerHTML = '';
 
-            // Shuffle options
             let shuffledOptions = [...qObj.options].sort(() => Math.random() - 0.5);
 
             shuffledOptions.forEach(opt => {
@@ -466,7 +401,6 @@
 
             qModal.classList.remove('hidden');
 
-            // Timer Countdown (30 seconds)
             let timeLeft = 30;
             qTimer.textContent = `Time: ${timeLeft}s`;
             clearInterval(questionTimerInterval);
@@ -475,7 +409,7 @@
                 qTimer.textContent = `Time: ${timeLeft}s`;
                 if (timeLeft <= 0) {
                     clearInterval(questionTimerInterval);
-                    handleAnswerSubmission(false, totalRoll); // Timeout counts as incorrect answer
+                    handleAnswerSubmission(false, totalRoll);
                 }
             }, 1000);
         }
@@ -490,15 +424,12 @@
 
             if (isCorrect) {
                 logActivity(`Correct answer! Moving forward ${totalRoll} steps to tile ${targetPos}.`);
-                
-                // Check Snakes & Ladders bonuses/penalties
                 if (snakesAndLadders[targetPos]) {
                     const finalDest = snakesAndLadders[targetPos];
                     if (finalDest > targetPos) {
                         logActivity(`Nice! Landed at the base of a ladder and climbed up to tile ${finalDest}!`);
                     } else {
                         logActivity(`Saved! Correct answer prevented sliding down the snake! Staying at tile ${targetPos}.`);
-                        // Correct answer prevents sliding down snake!
                         finalizeMove(targetPos);
                         return;
                     }
@@ -507,8 +438,6 @@
                 finalizeMove(targetPos);
             } else {
                 logActivity(`Incorrect answer! You cannot move forward.`);
-                
-                // If landing on a snake head without a correct answer, slide down!
                 if (snakesAndLadders[targetPos] && snakesAndLadders[targetPos] < targetPos) {
                     const snakeTail = snakesAndLadders[targetPos];
                     logActivity(`Oh no! Incorrect answer caused you to slide down the snake from ${targetPos} to ${snakeTail}!`);
@@ -527,17 +456,12 @@
                 alert(`Congratulations ${gameState.playerName}! You won the game!`);
             }
 
-            // Sync with Firebase or update locally
-            if (typeof db !== 'undefined' && gameState.roomCode) {
-                const nextTurnIdx = (gameState.currentTurnIndex + 1) % gameState.turnOrder.length;
-                db.collection('rooms').doc(gameState.roomCode).update({
-                    players: gameState.players,
-                    currentTurnIndex: nextTurnIdx
-                });
-            } else {
-                updateUI();
-                enableTurnControls(true);
-            }
+            const nextTurnIdx = (gameState.currentTurnIndex + 1) % gameState.turnOrder.length;
+            const roomData = JSON.parse(localStorage.getItem(`room_${gameState.roomCode}`)) || {};
+            roomData.players = gameState.players;
+            roomData.currentTurnIndex = nextTurnIdx;
+
+            saveAndBroadcastState(roomData);
         }
 
         function logActivity(message) {
@@ -548,7 +472,6 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        // Initialize board UI on load
         window.onload = () => {
             buildBoard();
         };
